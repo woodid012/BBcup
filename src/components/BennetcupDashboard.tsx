@@ -1,12 +1,39 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { type HTMLAttributes } from 'react';
+import { type HTMLAttributes, ReactNode } from 'react';
+
+// Type definitions
+interface Bet {
+  timestamp: string;
+  person_submitting: string;
+  pairing: string;
+  bet_type: 'win' | 'spoon';
+  amount: number;
+}
+
+interface PairingData {
+  pairing: string;
+  winAmount: number;
+  spoonAmount: number;
+}
+
+interface BettingData {
+  totalWinPool: number;
+  totalSpoonPool: number;
+  totalPool: number;
+  pairings: PairingData[];
+}
+
+// Component Props interfaces
+interface CardProps extends HTMLAttributes<HTMLDivElement> {
+  children: ReactNode;
+}
 
 // Constants
-const PAIRINGS = [
+const PAIRINGS: string[] = [
   "Al T/Cuts",
   "Mitzi/Bondy",
   "Woody/Foulsh",
@@ -18,7 +45,7 @@ const PAIRINGS = [
 ];
 
 // Moving BETS to a state to avoid hydration issues
-const initialBets = [
+const initialBets: Bet[] = [
   {
     timestamp: "2024-01-02T12:00:00",
     person_submitting: "John Doe",
@@ -35,8 +62,8 @@ const initialBets = [
   }
 ];
 
-// Calculate betting data function modified to work with string timestamps
-const calculateBettingData = (bets) => {
+// Calculate betting data function
+const calculateBettingData = (bets: Bet[]): BettingData => {
   const pairingsData = PAIRINGS.map(pairing => {
     const winBets = bets.filter(bet => bet.pairing === pairing && bet.bet_type === 'win');
     const spoonBets = bets.filter(bet => bet.pairing === pairing && bet.bet_type === 'spoon');
@@ -65,13 +92,17 @@ const calculateBettingData = (bets) => {
 };
 
 // Submitted Bets Component
-const SubmittedBets = ({ bets }) => {
+interface SubmittedBetsProps {
+  bets: Bet[];
+}
+
+const SubmittedBets = ({ bets }: SubmittedBetsProps): JSX.Element => {
     return (
-        <Card className="w-full">
-            <CardHeader>
-                <CardTitle>Recent Bets</CardTitle>
-            </CardHeader>
-            <CardContent>
+        <div className="w-full rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="flex flex-col space-y-1.5 p-6">
+                <h3 className="text-2xl font-semibold leading-none tracking-tight">Recent Bets</h3>
+            </div>
+            <div className="p-6 pt-0">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead>
@@ -108,16 +139,16 @@ const SubmittedBets = ({ bets }) => {
                         </tbody>
                     </table>
                 </div>
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 };
 
 // Main Dashboard Component
-const BennetcupDashboard = () => {
-  const [bets, setBets] = useState(initialBets);
-  const [bettingData, setBettingData] = useState(() => calculateBettingData(initialBets));
-  const [lastUpdate, setLastUpdate] = useState("");
+const BennetcupDashboard = (): JSX.Element => {
+  const [bets, setBets] = useState<Bet[]>(initialBets);
+  const [bettingData, setBettingData] = useState<BettingData>(() => calculateBettingData(initialBets));
+  const [lastUpdate, setLastUpdate] = useState<string>("");
 
   useEffect(() => {
     setLastUpdate(new Date().toLocaleTimeString());
@@ -127,80 +158,80 @@ const BennetcupDashboard = () => {
     <div className="max-w-6xl mx-auto p-4 space-y-8">
       <div className="space-y-6">
         {/* Total Pool Summary */}
-        <Card className="w-full bg-blue-50">
-          <CardHeader>
-            <CardTitle>Current Betting Pool</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div>
-                <p className="text-gray-600">Total Pool</p>
-                <p className="text-2xl font-bold">
-                  ${bettingData.totalPool.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600">Win Pool</p>
-                <p className="text-2xl font-bold">
-                  ${bettingData.totalWinPool.toFixed(2)}
-                </p>
-              </div>
-              <div>
-                <p className="text-gray-600">Spoon Pool</p>
-                <p className="text-2xl font-bold">
-                  ${bettingData.totalSpoonPool.toFixed(2)}
-                </p>
-              </div>
+        <div className="w-full rounded-lg border bg-blue-50 text-card-foreground shadow-sm">
+            <div className="flex flex-col space-y-1.5 p-6">
+                <h3 className="text-2xl font-semibold leading-none tracking-tight">Current Betting Pool</h3>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-6 pt-0">
+                <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p className="text-gray-600">Total Pool</p>
+                        <p className="text-2xl font-bold">
+                            ${bettingData.totalPool.toFixed(2)}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">Win Pool</p>
+                        <p className="text-2xl font-bold">
+                            ${bettingData.totalWinPool.toFixed(2)}
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">Spoon Pool</p>
+                        <p className="text-2xl font-bold">
+                            ${bettingData.totalSpoonPool.toFixed(2)}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         {/* Odds Table */}
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Live Betting Odds</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Pairing</th>
-                    <th className="text-center p-2">Win Amount</th>
-                    <th className="text-center p-2">Win Odds</th>
-                    <th className="text-center p-2">Spoon Amount</th>
-                    <th className="text-center p-2">Spoon Odds</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bettingData.pairings.map((pair) => (
-                    <tr key={pair.pairing} className="border-b hover:bg-gray-50">
-                      <td className="p-2 font-medium">{pair.pairing}</td>
-                      <td className="text-center p-2">${pair.winAmount.toFixed(2)}</td>
-                      <td className="text-center p-2 font-bold text-green-600">
-                        {pair.winAmount > 0 
-                          ? (bettingData.totalWinPool / pair.winAmount).toFixed(2)
-                          : '∞'}x
-                      </td>
-                      <td className="text-center p-2">${pair.spoonAmount.toFixed(2)}</td>
-                      <td className="text-center p-2 font-bold text-red-600">
-                        {pair.spoonAmount > 0
-                          ? (bettingData.totalSpoonPool / pair.spoonAmount).toFixed(2)
-                          : '∞'}x
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        <div className="w-full rounded-lg border bg-card text-card-foreground shadow-sm">
+            <div className="flex flex-col space-y-1.5 p-6">
+                <h3 className="text-2xl font-semibold leading-none tracking-tight">Live Betting Odds</h3>
             </div>
-            
-            <div className="mt-4 text-sm text-gray-500">
-              <p>* Odds are calculated as: (Total Pool / Amount Bet on Pairing)</p>
-              <p>* Higher odds indicate fewer bets on that outcome</p>
-              <p>* Last updated: {lastUpdate}</p>
+            <div className="p-6 pt-0">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="border-b">
+                                <th className="text-left p-2">Pairing</th>
+                                <th className="text-center p-2">Win Amount</th>
+                                <th className="text-center p-2">Win Odds</th>
+                                <th className="text-center p-2">Spoon Amount</th>
+                                <th className="text-center p-2">Spoon Odds</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {bettingData.pairings.map((pair) => (
+                                <tr key={pair.pairing} className="border-b hover:bg-gray-50">
+                                    <td className="p-2 font-medium">{pair.pairing}</td>
+                                    <td className="text-center p-2">${pair.winAmount.toFixed(2)}</td>
+                                    <td className="text-center p-2 font-bold text-green-600">
+                                        {pair.winAmount > 0 
+                                            ? (bettingData.totalWinPool / pair.winAmount).toFixed(2)
+                                            : '∞'}x
+                                    </td>
+                                    <td className="text-center p-2">${pair.spoonAmount.toFixed(2)}</td>
+                                    <td className="text-center p-2 font-bold text-red-600">
+                                        {pair.spoonAmount > 0
+                                            ? (bettingData.totalSpoonPool / pair.spoonAmount).toFixed(2)
+                                            : '∞'}x
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div className="mt-4 text-sm text-gray-500">
+                    <p>* Odds are calculated as: (Total Pool / Amount Bet on Pairing)</p>
+                    <p>* Higher odds indicate fewer bets on that outcome</p>
+                    <p>* Last updated: {lastUpdate}</p>
+                </div>
             </div>
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Submitted Bets Table */}
         <SubmittedBets bets={bets} />
