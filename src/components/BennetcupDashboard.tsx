@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { type HTMLAttributes } from 'react';
 
 // Constants
 const PAIRINGS = [
@@ -67,7 +68,7 @@ const BETTING_DATA = calculateBettingData();
 // Submitted Bets Component
 const SubmittedBets = () => {
     return (
-        <Card>
+        <Card className="w-full">
             <CardHeader>
                 <CardTitle>Recent Bets</CardTitle>
             </CardHeader>
@@ -120,7 +121,7 @@ const BennetcupDashboard = () => {
       {/* Odds Summary Section */}
       <div className="space-y-6">
         {/* Total Pool Summary */}
-        <Card className="bg-blue-50">
+        <Card className="w-full bg-blue-50">
           <CardHeader>
             <CardTitle>Current Betting Pool</CardTitle>
           </CardHeader>
@@ -149,7 +150,7 @@ const BennetcupDashboard = () => {
         </Card>
 
         {/* Odds Table */}
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Live Betting Odds</CardTitle>
           </CardHeader>
@@ -190,7 +191,7 @@ const BennetcupDashboard = () => {
             <div className="mt-4 text-sm text-gray-500">
               <p>* Odds are calculated as: (Total Pool / Amount Bet on Pairing)</p>
               <p>* Higher odds indicate fewer bets on that outcome</p>
-              <p>* Odds update in real-time</p>
+              <p>* Last updated: {new Date().toLocaleTimeString()}</p>
             </div>
           </CardContent>
         </Card>
