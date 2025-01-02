@@ -1,3 +1,9 @@
+import BennetcupDashboard from '@/components/BennetcupDashboard'
+
 export default function Home() {
-  return <div>Hello World</div>
+  return (
+    <main className="min-h-screen bg-gray-50">
+      <BennetcupDashboard />
+    </main>
+  )
 }
