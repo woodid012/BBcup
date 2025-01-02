@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { type HTMLAttributes } from 'react';
@@ -17,16 +17,17 @@ const PAIRINGS = [
   "Iddles/Niz"
 ];
 
-const BETS = [
+// Moving BETS to a state to avoid hydration issues
+const initialBets = [
   {
-    timestamp: new Date(),
+    timestamp: "2024-01-02T12:00:00",
     person_submitting: "John Doe",
     pairing: "Al T/Cuts",
     bet_type: "win",
     amount: 50
   },
   {
-    timestamp: new Date(Date.now() - 3600000),
+    timestamp: "2024-01-02T11:00:00",
     person_submitting: "Jane Smith",
     pairing: "Mitzi/Bondy",
     bet_type: "spoon",
@@ -34,11 +35,11 @@ const BETS = [
   }
 ];
 
-// Calculate betting data from BETS
-const calculateBettingData = () => {
+// Calculate betting data function modified to work with string timestamps
+const calculateBettingData = (bets) => {
   const pairingsData = PAIRINGS.map(pairing => {
-    const winBets = BETS.filter(bet => bet.pairing === pairing && bet.bet_type === 'win');
-    const spoonBets = BETS.filter(bet => bet.pairing === pairing && bet.bet_type === 'spoon');
+    const winBets = bets.filter(bet => bet.pairing === pairing && bet.bet_type === 'win');
+    const spoonBets = bets.filter(bet => bet.pairing === pairing && bet.bet_type === 'spoon');
     
     return {
       pairing,
@@ -47,11 +48,11 @@ const calculateBettingData = () => {
     };
   });
 
-  const totalWinPool = BETS
+  const totalWinPool = bets
     .filter(bet => bet.bet_type === 'win')
     .reduce((sum, bet) => sum + bet.amount, 0);
     
-  const totalSpoonPool = BETS
+  const totalSpoonPool = bets
     .filter(bet => bet.bet_type === 'spoon')
     .reduce((sum, bet) => sum + bet.amount, 0);
 
@@ -63,10 +64,8 @@ const calculateBettingData = () => {
   };
 };
 
-const BETTING_DATA = calculateBettingData();
-
 // Submitted Bets Component
-const SubmittedBets = () => {
+const SubmittedBets = ({ bets }) => {
     return (
         <Card className="w-full">
             <CardHeader>
@@ -85,7 +84,7 @@ const SubmittedBets = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {BETS.map((bet, index) => (
+                            {bets.map((bet, index) => (
                                 <tr key={index} className="border-b hover:bg-gray-50">
                                     <td className="p-2">
                                         {new Date(bet.timestamp).toLocaleString()}
@@ -116,9 +115,16 @@ const SubmittedBets = () => {
 
 // Main Dashboard Component
 const BennetcupDashboard = () => {
+  const [bets, setBets] = useState(initialBets);
+  const [bettingData, setBettingData] = useState(() => calculateBettingData(initialBets));
+  const [lastUpdate, setLastUpdate] = useState("");
+
+  useEffect(() => {
+    setLastUpdate(new Date().toLocaleTimeString());
+  }, []);
+
   return (
     <div className="max-w-6xl mx-auto p-4 space-y-8">
-      {/* Odds Summary Section */}
       <div className="space-y-6">
         {/* Total Pool Summary */}
         <Card className="w-full bg-blue-50">
@@ -130,19 +136,19 @@ const BennetcupDashboard = () => {
               <div>
                 <p className="text-gray-600">Total Pool</p>
                 <p className="text-2xl font-bold">
-                  ${BETTING_DATA.totalPool.toFixed(2)}
+                  ${bettingData.totalPool.toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600">Win Pool</p>
                 <p className="text-2xl font-bold">
-                  ${BETTING_DATA.totalWinPool.toFixed(2)}
+                  ${bettingData.totalWinPool.toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-gray-600">Spoon Pool</p>
                 <p className="text-2xl font-bold">
-                  ${BETTING_DATA.totalSpoonPool.toFixed(2)}
+                  ${bettingData.totalSpoonPool.toFixed(2)}
                 </p>
               </div>
             </div>
@@ -167,19 +173,19 @@ const BennetcupDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {BETTING_DATA.pairings.map((pair) => (
+                  {bettingData.pairings.map((pair) => (
                     <tr key={pair.pairing} className="border-b hover:bg-gray-50">
                       <td className="p-2 font-medium">{pair.pairing}</td>
                       <td className="text-center p-2">${pair.winAmount.toFixed(2)}</td>
                       <td className="text-center p-2 font-bold text-green-600">
                         {pair.winAmount > 0 
-                          ? (BETTING_DATA.totalWinPool / pair.winAmount).toFixed(2)
+                          ? (bettingData.totalWinPool / pair.winAmount).toFixed(2)
                           : '∞'}x
                       </td>
                       <td className="text-center p-2">${pair.spoonAmount.toFixed(2)}</td>
                       <td className="text-center p-2 font-bold text-red-600">
                         {pair.spoonAmount > 0
-                          ? (BETTING_DATA.totalSpoonPool / pair.spoonAmount).toFixed(2)
+                          ? (bettingData.totalSpoonPool / pair.spoonAmount).toFixed(2)
                           : '∞'}x
                       </td>
                     </tr>
@@ -191,13 +197,13 @@ const BennetcupDashboard = () => {
             <div className="mt-4 text-sm text-gray-500">
               <p>* Odds are calculated as: (Total Pool / Amount Bet on Pairing)</p>
               <p>* Higher odds indicate fewer bets on that outcome</p>
-              <p>* Last updated: {new Date().toLocaleTimeString()}</p>
+              <p>* Last updated: {lastUpdate}</p>
             </div>
           </CardContent>
         </Card>
 
         {/* Submitted Bets Table */}
-        <SubmittedBets />
+        <SubmittedBets bets={bets} />
       </div>
     </div>
   );
