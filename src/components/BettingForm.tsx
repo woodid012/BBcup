@@ -1,11 +1,24 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, ChangeEvent, FormEvent } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-// Constants (could be moved to a shared constants file later)
-const PAIRINGS = [
+// Type definitions
+interface FormData {
+  person_submitting: string;
+  pairing: string;
+  amount: string;
+  bet_type: 'win' | 'spoon';
+}
+
+interface StatusState {
+  type: 'success' | 'error' | '';
+  message: string;
+}
+
+// Constants
+const PAIRINGS: string[] = [
   "Al T/Cuts",
   "Mitzi/Bondy",
   "Woody/Foulsh",
@@ -16,16 +29,17 @@ const PAIRINGS = [
   "Iddles/Niz"
 ];
 
-const BettingForm = () => {
-  const [formData, setFormData] = useState({
+const BettingForm = (): JSX.Element => {
+  const [formData, setFormData] = useState<FormData>({
     person_submitting: '',
     pairing: '',
     amount: '',
     bet_type: 'win'
   });
-  const [status, setStatus] = useState({ type: '', message: '' });
+  
+  const [status, setStatus] = useState<StatusState>({ type: '', message: '' });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
     setStatus({ type: 'success', message: 'Bet submitted successfully!' });
     setFormData({
@@ -36,7 +50,7 @@ const BettingForm = () => {
     });
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -46,16 +60,17 @@ const BettingForm = () => {
 
   return (
     <div className="max-w-xl mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>Place Your Bet</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="w-full rounded-lg border bg-card text-card-foreground shadow-sm">
+        <div className="flex flex-col space-y-1.5 p-6">
+          <h3 className="text-2xl font-semibold leading-none tracking-tight">Place Your Bet</h3>
+        </div>
+        <div className="p-6 pt-0">
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Person submitting */}
             <div>
-              <label className="block text-sm font-medium mb-1">Your Name</label>
+              <label htmlFor="person_submitting" className="block text-sm font-medium mb-1">Your Name</label>
               <input
+                id="person_submitting"
                 type="text"
                 name="person_submitting"
                 value={formData.person_submitting}
@@ -68,8 +83,9 @@ const BettingForm = () => {
 
             {/* Pairing dropdown */}
             <div>
-              <label className="block text-sm font-medium mb-1">Pairing to Bet On</label>
+              <label htmlFor="pairing" className="block text-sm font-medium mb-1">Pairing to Bet On</label>
               <select
+                id="pairing"
                 name="pairing"
                 value={formData.pairing}
                 onChange={handleChange}
@@ -87,8 +103,9 @@ const BettingForm = () => {
 
             {/* Amount field */}
             <div>
-              <label className="block text-sm font-medium mb-1">Amount ($)</label>
+              <label htmlFor="amount" className="block text-sm font-medium mb-1">Amount ($)</label>
               <input
+                id="amount"
                 type="number"
                 name="amount"
                 value={formData.amount}
@@ -103,8 +120,9 @@ const BettingForm = () => {
 
             {/* Bet type selection */}
             <div>
-              <label className="block text-sm font-medium mb-1">Bet Type</label>
+              <label htmlFor="bet_type" className="block text-sm font-medium mb-1">Bet Type</label>
               <select
+                id="bet_type"
                 name="bet_type"
                 value={formData.bet_type}
                 onChange={handleChange}
@@ -126,14 +144,16 @@ const BettingForm = () => {
 
           {/* Status message */}
           {status.message && (
-            <Alert className={`mt-4 ${status.type === 'error' ? 'bg-red-100' : 'bg-green-100'}`}>
-              <AlertDescription>
+            <div className={`mt-4 rounded-lg border p-4 ${
+              status.type === 'error' ? 'bg-red-100 border-red-200' : 'bg-green-100 border-green-200'
+            }`}>
+              <p className="text-sm">
                 {status.message}
-              </AlertDescription>
-            </Alert>
+              </p>
+            </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
